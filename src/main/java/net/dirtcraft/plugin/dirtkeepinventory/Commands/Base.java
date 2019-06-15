@@ -24,34 +24,62 @@ public class Base implements CommandExecutor {
         if (!(source instanceof Player))
             throw new CommandException(Utility.format("&cOnly a player can set their Keep Inventory status!"));
         Player player = (Player) source;
+        User user = Utility.getLuckPerms().getUser(player.getUniqueId());
+        if (user == null) throw new CommandException(Utility.format("&cThere was an error retrieving your user data!"));
+
+        if (args.<String>getOne("status").isPresent()) {
+            if (args.<String>getOne("status").get().equalsIgnoreCase("on")) {
+                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
+                        .setValue(true)
+                        .build();
+                user.setPermission(node);
+                Utility.getLuckPerms().getUserManager().saveUser(user);
+
+                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
+                return CommandResult.success();
+            }
+            if (args.<String>getOne("status").get().equalsIgnoreCase("off")) {
+                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
+                        .setValue(false)
+                        .build();
+                user.setPermission(node);
+                Utility.getLuckPerms().getUserManager().saveUser(user);
+
+                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
+                return CommandResult.success();
+            }
+        }
 
         ArrayList<String> statisticsHover = new ArrayList<String>() {{
             add("&5&nStatistics&r\n&r");
             add("&7Player&8: &6" + player.getName());
         }};
-
-        StringBuilder deathPenalty = new StringBuilder();
-        deathPenalty.append("&7Death Penalty: &6");
-        if (player.hasPermission(Utility.Groups.VETERAN)) {
-            deathPenalty.append("$200 Coins");
-        } else if (player.hasPermission(Utility.Groups.MASTER)) {
-            deathPenalty.append("$150 Coins");
-        } else if (player.hasPermission(Utility.Groups.EXPERIENCED)) {
-            deathPenalty.append("$125 Coins");
-        } else if (player.hasPermission(Utility.Groups.CITIZEN)) {
-            deathPenalty.append("$100 Coins");
-        } else if (player.hasPermission(Utility.Groups.AMATEUR)) {
-            deathPenalty.append("$75 Coins");
-        } else if (player.hasPermission(Utility.Groups.BEGINNER)) {
-            deathPenalty.append("$50 Coins");
-        } else {
-            deathPenalty.append("None");
-        }
-
         if (player.getStatisticData().get(Statistics.DEATHS).isPresent()) {
             statisticsHover.add("&7Deaths&8: &6" + player.getStatisticData().get(Statistics.DEATHS).get().toString());
         } else {
             statisticsHover.add("&7Deaths&8: &6" + "N/A");
+        }
+
+        StringBuilder deathPenalty = new StringBuilder();
+        deathPenalty.append("&7Keep Inventory Fee: &6");
+        if (player.hasPermission(Utility.Permissions.EXEMPT)) {
+            deathPenalty.append("Exempt");
+        } else {
+            if (player.hasPermission(Utility.Groups.VETERAN)) {
+                deathPenalty.append("$200 Coins");
+            } else if (player.hasPermission(Utility.Groups.MASTER)) {
+                deathPenalty.append("$150 Coins");
+            } else if (player.hasPermission(Utility.Groups.EXPERIENCED)) {
+                deathPenalty.append("$125 Coins");
+            } else if (player.hasPermission(Utility.Groups.CITIZEN)) {
+                deathPenalty.append("$100 Coins");
+            } else if (player.hasPermission(Utility.Groups.AMATEUR)) {
+                deathPenalty.append("$75 Coins");
+            } else if (player.hasPermission(Utility.Groups.BEGINNER)) {
+                deathPenalty.append("$50 Coins");
+            } else {
+                deathPenalty.append("None");
+            }
         }
 
         Text.Builder text = Text.builder();
@@ -59,9 +87,6 @@ public class Base implements CommandExecutor {
         contents.add("");
 
         PaginationList.Builder pagination = Utility.getPagination();
-
-        User user = Utility.getLuckPerms().getUser(player.getUniqueId());
-        if (user == null) throw new CommandException(Utility.format("&cThere was an error retrieving your user data!"));
 
         if (player.hasPermission(Utility.Permissions.ENABLED)) {
             contents.add("&7Keep Inventory is currently &aenabled&7, click me to toggle!");
@@ -71,7 +96,9 @@ public class Base implements CommandExecutor {
                         .setValue(false)
                         .build();
                 user.setPermission(node);
-                Sponge.getCommandManager().process(player, "keepinv");
+                Utility.getLuckPerms().getUserManager().saveUser(user);
+
+                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
             }));
         } else {
             contents.add("&7Keep Inventory is currently &cdisabled&7, click me to toggle!");
@@ -81,7 +108,9 @@ public class Base implements CommandExecutor {
                         .setValue(true)
                         .build();
                 user.setPermission(node);
-                Sponge.getCommandManager().process(player, "keepinv");
+                Utility.getLuckPerms().getUserManager().saveUser(user);
+
+                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
             }));
         }
         contents.add("");

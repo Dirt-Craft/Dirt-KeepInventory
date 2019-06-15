@@ -20,6 +20,10 @@ public class Economy {
         return Sponge.getServiceManager().provide(EconomyService.class);
     }
 
+    /*
+
+                I thought I would use this
+
     public static BigDecimal getBalance(Player player) {
         if (!getEconomyService().isPresent()) return null;
         Optional<UniqueAccount> uOpt = getEconomyService().get().getOrCreateAccount(player.getUniqueId());
@@ -27,8 +31,8 @@ public class Economy {
 
         UniqueAccount acc = uOpt.get();
         return acc.getBalance(getEconomyService().get().getDefaultCurrency());
-
     }
+     */
 
     public static boolean withdrawBalance(Player player, int amount) {
         if (!getEconomyService().isPresent()) return false;
