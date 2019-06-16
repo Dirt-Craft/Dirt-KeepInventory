@@ -13,12 +13,11 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.storage.WorldProperties;
 
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class Utility {
+
+    public static ArrayList<UUID> deathList = new ArrayList<>();
 
     public static Text format(String unformattedString) {
         return TextSerializers.FORMATTING_CODE.deserialize(unformattedString);
