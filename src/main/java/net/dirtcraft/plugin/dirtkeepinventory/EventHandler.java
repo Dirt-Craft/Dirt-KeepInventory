@@ -1,5 +1,6 @@
 package net.dirtcraft.plugin.dirtkeepinventory;
 
+import net.dirtcraft.discord.spongediscordlib.SpongeDiscordLib;
 import net.dirtcraft.plugin.dirtkeepinventory.Commands.CommandManager;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class EventHandler {
+
+    private final boolean isPixelmon = SpongeDiscordLib.getServerName().toLowerCase().contains("pixel");
 
     @Listener
     public void onServerStarting(GameStartingServerEvent event) {
@@ -44,7 +47,8 @@ public class EventHandler {
             event.setKeepInventory(false);
             return;
         }
-        if (Utility.deathList.contains(player.getUniqueId())) {
+
+        if (Utility.deathList.contains(player.getUniqueId()) && !isPixelmon) {
             event.setKeepInventory(true);
             player.sendMessage(Utility.format("&7You are currently under a &b60 &7second grace period"));
             return;
@@ -56,29 +60,35 @@ public class EventHandler {
         ArrayList<String> contents = new ArrayList<>();
         contents.add("");
 
+        if (isPixelmon) {
+            contents.add("&b" + player.getName() + "&7's inventory has been &arestored");
+            event.setKeepInventory(true);
+        } else {
+
         if (Utility.hasSoulboundItem(player)) {
             pagination.footer(Utility.format("&cAn item with Soulbound has been detected and removed from your inventory!"));
         }
 
         Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
 
-        if (keepInv.getKey()) {
-            int value = Utility.canKeepInventory(player).getValue();
-            if (value > 0) {
-                contents.add("&b" + player.getName() + "&7's inventory has been restored for &a$" + value);
+            if (keepInv.getKey()) {
+                int value = Utility.canKeepInventory(player).getValue();
+                if (value > 0) {
+                    contents.add("&b" + player.getName() + "&7's inventory has been restored for &a$" + value);
+                } else {
+                    contents.add("&b" + player.getName() + "&7's inventory has been restored for &a" + "free&7!");
+                }
+                Utility.deathList.add(player.getUniqueId());
+                Task.builder()
+                        .async()
+                        .delay(1, TimeUnit.MINUTES)
+                        .execute(() -> Utility.deathList.remove(player.getUniqueId()))
+                        .submit(DirtKeepInventory.getInstance());
+                event.setKeepInventory(true);
             } else {
-                contents.add("&b" + player.getName() + "&7's inventory has been restored for &a" + "free&7!");
+                contents.add("&b" + player.getName() + "&7 does &cnot &7have enough funds to restore their inventory!");
+                event.setKeepInventory(false);
             }
-            Utility.deathList.add(player.getUniqueId());
-            Task.builder()
-                    .async()
-                    .delay(1, TimeUnit.MINUTES)
-                    .execute(() -> Utility.deathList.remove(player.getUniqueId()))
-                    .submit(DirtKeepInventory.getInstance());
-            event.setKeepInventory(true);
-        } else {
-            contents.add("&b" + player.getName() + "&7 does &cnot &7have enough funds to restore their inventory!");
-            event.setKeepInventory(false);
         }
 
         /*

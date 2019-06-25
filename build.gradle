@@ -8,11 +8,14 @@ version = pluginVersion
 
 repositories {
     mavenCentral()
+    jcenter()
+    maven {url 'https://jitpack.io/'}
 }
 
 dependencies {
-    compile 'me.lucko.luckperms:luckperms-api:4.4'
     compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    compile 'me.lucko.luckperms:luckperms-api:4.4'
+    compile 'com.github.Dirt-Craft:Sponge-Discord-Lib:-SNAPSHOT'
 }
 
 sponge.plugin.id = pluginId
