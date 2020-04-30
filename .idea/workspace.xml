@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3af4b78d-0829-43e0-933f-62f7a6130329" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Dirt-KeepInventory.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
@@ -17,7 +14,7 @@
     <option name="optimizeImportsOnTheFly" value="true" />
   </component>
   <component name="DarkyenusTimeTracker">
-    <option name="totalTimeSeconds" value="30270" />
+    <option name="totalTimeSeconds" value="30316" />
     <option name="gitIntegration" value="true" />
     <option name="naggedAbout" value="1" />
   </component>
