@@ -48,6 +48,11 @@ public class EventHandler {
             return;
         }
 
+        if (SpongeDiscordLib.getServerName().equalsIgnoreCase("rl craft")) {
+            event.setKeepInventory(true);
+            return;
+        }
+
         if (Utility.deathList.contains(player.getUniqueId()) && !isPixelmon) {
             event.setKeepInventory(true);
             player.sendMessage(Utility.format("&7You are currently under a &b60 &7second grace period"));
