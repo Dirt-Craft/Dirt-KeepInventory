@@ -77,7 +77,7 @@ public class EventHandler {
         Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
 
             if (keepInv.getKey()) {
-                int value = Utility.canKeepInventory(player).getValue();
+                int value = keepInv.getValue();
                 if (value > 0) {
                     contents.add("&b" + player.getName() + "&7's inventory has been restored for &a$" + value);
                 } else {
