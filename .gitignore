@@ -10,7 +10,7 @@
 *.log
 
 # IntelliJ Stuff 
-.idea/workspace.xml
+.idea\workspace.xml
 
 # BlueJ files
 *.ctxt

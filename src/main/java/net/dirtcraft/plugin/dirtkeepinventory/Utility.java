@@ -29,7 +29,7 @@ public class Utility {
 
         Optional<EnchantmentType> cofhSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "cofhcore:soulbound");
         Optional<EnchantmentType> enderioSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "enderio:soulbound");
-        Optional<EnchantmentType> sharpness = Sponge.getRegistry().getType(EnchantmentType.class, "minecraft:sharpness");
+        //Optional<EnchantmentType> sharpness = Sponge.getRegistry().getType(EnchantmentType.class, "minecraft:sharpness");
 
         for (Inventory slot : player.getInventory().slots()) {
             if (!slot.peek().isPresent()) continue;
@@ -46,43 +46,32 @@ public class Utility {
                 }
             }
 
-            if (cofhSoulbound.isPresent()) {
-                Enchantment cofh1Soulbound = Enchantment.builder()
-                        .type(cofhSoulbound.get())
-                        .level(1)
-                        .build();
-                Enchantment cofh2Soulbound = Enchantment.builder()
-                        .type(cofhSoulbound.get())
-                        .level(2)
-                        .build();
-                Enchantment cofh3Soulbound = Enchantment.builder()
-                        .type(cofhSoulbound.get())
-                        .level(3)
-                        .build();
-                if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(cofh1Soulbound)) {
-                    slot.poll();
-                    if (!hasSoulboundItem) hasSoulboundItem = true;
-                }
-                if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(cofh2Soulbound)) {
-                    slot.poll();
-                    if (!hasSoulboundItem) hasSoulboundItem = true;
-                }
-                if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(cofh3Soulbound)) {
-                    slot.poll();
-                    if (!hasSoulboundItem) hasSoulboundItem = true;
+            // If no SoulBound has been found in this slot yet (aka no EnderIO SoulBound)
+            // Since checking an item already marked as bound is pointless.
+            if(!hasSoulboundItem) {
+                if (cofhSoulbound.isPresent()) {
+                    // Start at 1 go to 3 (For all 3 levels of CofHSoulBound - mainly done to reduce space + its cleaner)
+                    for (int i = 1; i < 4; i++) {
+                        Enchantment cofhSB = Enchantment.builder().type(cofhSoulbound.get()).level(i).build();
+                        if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(cofhSB)) {
+                            slot.poll();
+                            // No longer checking, since it must be false if we got here.
+                            hasSoulboundItem = true;
+                        }
+                    }
                 }
             }
-
-            if (sharpness.isPresent()) {
-                Enchantment s = Enchantment.builder()
-                        .level(1)
-                        .type(sharpness.get())
-                        .build();
-                if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(s)) {
-                    slot.poll();
-                    if (!hasSoulboundItem) hasSoulboundItem = true;
-                }
-            }
+            // Commenting this & not deleting, but I really doubt sharpness 1 items should be deleted.
+//            if (sharpness.isPresent()) {
+//                Enchantment s = Enchantment.builder()
+//                        .level(1)
+//                        .type(sharpness.get())
+//                        .build();
+//                if (slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).get().contains(s)) {
+//                    slot.poll();
+//                    if (!hasSoulboundItem) hasSoulboundItem = true;
+//                }
+//            }
         }
 
         return hasSoulboundItem;
@@ -105,34 +94,26 @@ public class Utility {
     }
 
     public static Map.Entry<Boolean, Integer> canKeepInventory(Player player) {
-        int fee;
+        int fee = 0;
         if (player.hasPermission(Permissions.EXEMPT)) {
-            fee = 0;
             return new AbstractMap.SimpleEntry<>(true, fee);
         }
 
         if (player.hasPermission(Groups.VETERAN)) {
             fee = Groups.GROUP_FEE.get("veteran");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         } else if (player.hasPermission(Groups.MASTER)) {
             fee = Groups.GROUP_FEE.get("master");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         } else if (player.hasPermission(Groups.EXPERIENCED)) {
             fee = Groups.GROUP_FEE.get("experienced");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         } else if (player.hasPermission(Groups.CITIZEN)) {
             fee = Groups.GROUP_FEE.get("citizen");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         } else if (player.hasPermission(Groups.AMATEUR)) {
             fee = Groups.GROUP_FEE.get("amateur");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         } else if (player.hasPermission(Groups.BEGINNER)) {
             fee = Groups.GROUP_FEE.get("beginner");
-            return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
         }
-
-        fee = 0;
-        return new AbstractMap.SimpleEntry<>(true, fee);
+        // Added this here, and removed it from all the if's.
+        return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
     }
 
     public static class Pagination {
