@@ -2,9 +2,13 @@ package net.dirtcraft.plugin.dirtkeepinventory;
 
 import me.lucko.luckperms.LuckPerms;
 import me.lucko.luckperms.api.LuckPermsApi;
+import net.minecraft.nbt.NBTTagByteArray;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
+import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.enchantment.Enchantment;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
@@ -14,6 +18,11 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.storage.WorldProperties;
+import baubles.api.BaubleType;
+import baubles.api.BaublesApi;
+import baubles.api.IBauble;
+import baubles.api.cap.IBaublesItemHandler;
+import net.minecraft.entity.player.EntityPlayer;
 
 import java.util.*;
 
@@ -28,42 +37,98 @@ public class Utility {
     public static boolean hasSoulboundItem(Player player) {
         boolean hasSoulboundItem = false;
 
-        Optional<EnchantmentType> cofhSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "cofhcore:soulbound");
-        Optional<EnchantmentType> enderioSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "enderio:soulbound");
-
+        // For each normal inventory slot.
         for (Inventory slot : player.getInventory().slots()) {
             if (!slot.peek().isPresent()) continue;
-            ItemStack stack = slot.peek().get(); // Stack because it's probably less intensive than checking everytime.
-            if (!stack.get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
+            // Check if the item is even enchanted.
+            if (!slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
+            // We send the stack because its both probably more efficient than rechecking every time needed.
+            // And also because I can't send a bauble slot but only an ItemStack.
+            hasSoulboundItem = checkInvSlots(hasSoulboundItem, slot);
+        }
 
-            // Get enchantment data from teh item.
-            EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class).get();
+        // Check if the pack has Baubles.
+        if (BaublesApi.getBaublesHandler((EntityPlayer) player) != null) {
+            //For each bauble slot.
+            IBaublesItemHandler baubles = BaublesApi.getBaublesHandler((EntityPlayer) player);
+            for (int i = 0; i < baubles.getSlots(); i++){
+                if (baubles.getStackInSlot(i).isEmpty()) continue;
+                if (!baubles.getStackInSlot(i).isItemEnchanted()) continue;
 
-            if (enderioSoulbound.isPresent()) {
-                Enchantment soulbound = Enchantment.builder().type(enderioSoulbound.get()).level(1).build();
-                if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(soulbound)) {
-                    enchantmentData.remove(soulbound); // Remove it from the list.
-                    if (!hasSoulboundItem) hasSoulboundItem = true;
-                }
+                hasSoulboundItem = checkBaubleSlots(hasSoulboundItem, baubles.getStackInSlot(i));
+            }
+        }
+        return hasSoulboundItem;
+    }
+
+    //Bauble slots, using Forge                                     WHY can't it shit out sponge stacks -_-
+    //This is making me cry.
+    private static boolean checkBaubleSlots(boolean hasSoulbound, net.minecraft.item.ItemStack vanillaStack){
+        Optional<net.minecraft.enchantment.Enchantment> cofhSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("cofh:soulbound"));
+        Optional<net.minecraft.enchantment.Enchantment> enderioSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("enderio:soulbound"));
+
+        if(enderioSoulbound.isPresent()){
+            NBTTagList enchantments = vanillaStack.getEnchantmentTagList();
+            for (int i = 0; i < enchantments.tagCount(); i++) {
+                NBTTagCompound enchant = enchantments.getCompoundTagAt(i);
+                enchant.removeTag("ench");
             }
 
-            if (cofhSoulbound.isPresent()) {
-                // Start at 1 go to 3 (For all 3 levels of CofHSoulBound - mainly done to reduce space + its cleaner)
-                for (int i = 1; i < 4; i++) {
-                    Enchantment cofhSB = Enchantment.builder().type(cofhSoulbound.get()).level(i).build();
-                    if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(cofhSB)) {
-                        enchantmentData.remove(cofhSB); // Remove it from the list.
-                        if (!hasSoulboundItem) hasSoulboundItem = true;
-                    }
-                }
-            }
+            // ANd then here apply that shit back to the item
 
-            // setting stack enchantmentData which is the same but minus Soulbound
-            stack.offer(enchantmentData);
+            // And then see what the fuck baubles is whining about about not being allowed to just set Items in their slots.
+        }
+
+
+
+
+        return hasSoulbound;
+    }
+
+    //Vanilla inventory slots, using Sponge.
+    private static boolean checkInvSlots(boolean hasSoulbound, Inventory slot){
+        boolean hasSoulboundItem = hasSoulbound;
+        // Better than checking everytime.
+        ItemStack stack = slot.peek().get();
+        // Get enchantment data from the item.
+        EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class).get();
+        // Cleanse the enchantmentData
+        EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
+        // Check if anything has changes, aka if any Souls have been harvested.
+        if(enchantmentData.asList().containsAll(newEnchantData.asList())){
+            if(!hasSoulboundItem) hasSoulboundItem = true;
+            // setting stack to the new cleansed EnchantmentData
+            stack.offer(newEnchantData);
             // Setting slot with the item - SoulBound enchants.
             slot.set(stack);
         }
+
         return hasSoulboundItem;
+    }
+
+    // As in the enchantments.
+    private static EnchantmentData removeSoul(EnchantmentData enchantmentData, ItemStack stack){
+        Optional<EnchantmentType> cofhSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "cofhcore:soulbound");
+        Optional<EnchantmentType> enderioSoulbound = Sponge.getRegistry().getType(EnchantmentType.class, "enderio:soulbound");
+
+        if (enderioSoulbound.isPresent()) {
+            Enchantment soulbound = Enchantment.builder().type(enderioSoulbound.get()).level(1).build();
+            if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(soulbound)) {
+                enchantmentData.remove(soulbound); // Remove it from the list.
+            }
+        }
+
+        if (cofhSoulbound.isPresent()) {
+            // Start at 1 go to 3 (For all 3 levels of CofHSoulBound - mainly done to reduce space + its cleaner)
+            for (int i = 1; i < 4; i++) {
+                Enchantment cofhSB = Enchantment.builder().type(cofhSoulbound.get()).level(i).build();
+                if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(cofhSB)) {
+                    enchantmentData.remove(cofhSB); // Remove it from the list.
+                }
+            }
+        }
+
+        return enchantmentData;
     }
 
     public static void setGamerule() {
