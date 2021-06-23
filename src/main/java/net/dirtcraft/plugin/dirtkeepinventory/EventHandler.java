@@ -65,13 +65,13 @@ public class EventHandler {
         ArrayList<String> contents = new ArrayList<>();
         contents.add("");
 
-        if (42==5){//isPixelmon) {
+        if (isPixelmon) {
             contents.add("&b" + player.getName() + "&7's inventory has been &arestored");
             event.setKeepInventory(true);
         } else {
 
         if (Utility.hasSoulboundItem(player)) {
-            contents.add("&cAn item with Soulbound has been detected and removed from your inventory!");
+            contents.add("&cAn item with Soulbound has been detected & unenchanted.");
         }
 
         Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
