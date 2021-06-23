@@ -52,8 +52,6 @@ public class Utility {
                 for (int i = 1; i < 4; i++) {
                     Enchantment cofhSB = Enchantment.builder().type(cofhSoulbound.get()).level(i).build();
                     if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(cofhSB)) {
-                        // slot.poll();
-                        System.out.println("Removing CofHSB: " + i);
                         enchantmentData.remove(cofhSB); // Remove it from the list.
                         if (!hasSoulboundItem) hasSoulboundItem = true;
                     }
@@ -64,7 +62,6 @@ public class Utility {
             stack.offer(enchantmentData);
             // Setting slot with the item - SoulBound enchants.
             slot.set(stack);
-            System.out.println(enchantmentData);
         }
         return hasSoulboundItem;
     }
