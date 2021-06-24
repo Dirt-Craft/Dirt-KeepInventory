@@ -2,9 +2,11 @@ package net.dirtcraft.plugin.dirtkeepinventory;
 
 import me.lucko.luckperms.LuckPerms;
 import me.lucko.luckperms.api.LuckPermsApi;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.items.IItemHandler;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
@@ -54,8 +56,8 @@ public class Utility {
             for (int i = 0; i < baubles.getSlots(); i++){
                 if (baubles.getStackInSlot(i).isEmpty()) continue;
                 if (!baubles.getStackInSlot(i).isItemEnchanted()) continue;
-
-                hasSoulboundItem = checkBaubleSlots(hasSoulboundItem, baubles.getStackInSlot(i));
+                // Gotta call another one because 'haha no Sponge ItemStacks funniii' :)
+                hasSoulboundItem = checkBaubleSlots(hasSoulboundItem, baubles, i);
             }
         }
         return hasSoulboundItem;
@@ -63,16 +65,20 @@ public class Utility {
 
     //Bauble slots, using Forge                                     WHY can't it shit out sponge stacks -_-
     //This is making me cry.
-    private static boolean checkBaubleSlots(boolean hasSoulbound, net.minecraft.item.ItemStack vanillaStack){
+    private static boolean checkBaubleSlots(boolean hasSoulbound, IBaublesItemHandler baubles, int curSlot){
         Optional<net.minecraft.enchantment.Enchantment> cofhSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("cofh:soulbound"));
         Optional<net.minecraft.enchantment.Enchantment> enderioSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("enderio:soulbound"));
 
+        net.minecraft.item.ItemStack vanillaStack = baubles.getStackInSlot(curSlot);
         if(enderioSoulbound.isPresent()){
             NBTTagList enchantments = vanillaStack.getEnchantmentTagList();
             for (int i = 0; i < enchantments.tagCount(); i++) {
                 NBTTagCompound enchant = enchantments.getCompoundTagAt(i);
                 enchant.removeTag("ench");
             }
+
+            baubles.extractItem(curSlot, vanillaStack.getCount(), true);
+            baubles.insertItem(curSlot, vanillaStack, true);
 
             // ANd then here apply that shit back to the item
 
@@ -87,7 +93,6 @@ public class Utility {
 
     //Vanilla inventory slots, using Sponge.
     private static boolean checkInvSlots(boolean hasSoulbound, Inventory slot){
-        boolean hasSoulboundItem = hasSoulbound;
         // Better than checking everytime.
         ItemStack stack = slot.peek().get();
         // Get enchantment data from the item.
@@ -96,14 +101,14 @@ public class Utility {
         EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
         // Check if anything has changes, aka if any Souls have been harvested.
         if(enchantmentData.asList().containsAll(newEnchantData.asList())){
-            if(!hasSoulboundItem) hasSoulboundItem = true;
+            if(!hasSoulbound) hasSoulbound = true;
             // setting stack to the new cleansed EnchantmentData
             stack.offer(newEnchantData);
             // Setting slot with the item - SoulBound enchants.
             slot.set(stack);
         }
 
-        return hasSoulboundItem;
+        return hasSoulbound;
     }
 
     // As in the enchantments.
