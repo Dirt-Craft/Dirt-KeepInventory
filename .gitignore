@@ -6,8 +6,13 @@
 # Compiled class file
 *.class
 
-# Log file
+# Log file & Dir
 *.log
+*.log.gz
+logs/
+
+# IntelliJ Stuff 
+.idea\workspace.xml
 
 # BlueJ files
 *.ctxt
