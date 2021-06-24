@@ -31,68 +31,77 @@ import java.util.*;
 public class Utility {
 
     public static ArrayList<UUID> deathList = new ArrayList<>();
+    // But like honestly, despite how disgusting this looks.
+    // Throwing it around a bunch in a bunch of functions is not it either.
+    private static boolean hasSoulbound;
 
     public static Text format(String unformattedString) {
         return TextSerializers.FORMATTING_CODE.deserialize(unformattedString);
     }
 
     public static boolean hasSoulboundItem(Player player) {
-        boolean hasSoulboundItem = false;
+        hasSoulbound = false;
 
         // For each normal inventory slot.
         for (Inventory slot : player.getInventory().slots()) {
             if (!slot.peek().isPresent()) continue;
             // Check if the item is even enchanted.
             if (!slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
-            // We send the stack because its both probably more efficient than rechecking every time needed.
-            // And also because I can't send a bauble slot but only an ItemStack.
-            hasSoulboundItem = checkInvSlots(hasSoulboundItem, slot);
+            checkInvSlots(slot);
         }
 
         // Check if the pack has Baubles.
+        System.out.println("Before getBaubles");
         if (BaublesApi.getBaublesHandler((EntityPlayer) player) != null) {
+            System.out.println("In Get baubles");
             //For each bauble slot.
             IBaublesItemHandler baubles = BaublesApi.getBaublesHandler((EntityPlayer) player);
+            System.out.println("Got the Baubles");
+            System.out.println(baubles.getSlots());
             for (int i = 0; i < baubles.getSlots(); i++){
+                // Casting the ForgeStack onto the Sponge Stack (Thanks Shiny <3)
+                ItemStack stack = (ItemStack)(Object) baubles.getStackInSlot(i);
+                System.out.println("Created Stack thanks Shiny");
+                System.out.println(i);
                 if (baubles.getStackInSlot(i).isEmpty()) continue;
-                if (!baubles.getStackInSlot(i).isItemEnchanted()) continue;
-                // Gotta call another one because 'haha no Sponge ItemStacks funniii' :)
-                hasSoulboundItem = checkBaubleSlots(hasSoulboundItem, baubles, i);
+                System.out.println("Is not empty");
+                if (!stack.get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
+                System.out.println("Is Enchanted");
+                // Gotta call another one because Baubles can't use setSlot
+                checkBaubleSlots(baubles, i, stack);
             }
         }
-        return hasSoulboundItem;
+        return hasSoulbound;
     }
 
     //Bauble slots, using Forge                                     WHY can't it shit out sponge stacks -_-
     //This is making me cry.
-    private static boolean checkBaubleSlots(boolean hasSoulbound, IBaublesItemHandler baubles, int curSlot){
-        Optional<net.minecraft.enchantment.Enchantment> cofhSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("cofh:soulbound"));
-        Optional<net.minecraft.enchantment.Enchantment> enderioSoulbound = Optional.ofNullable(net.minecraft.enchantment.Enchantment.getEnchantmentByLocation("enderio:soulbound"));
+    private static void checkBaubleSlots(IBaublesItemHandler baubles, int curSlot, ItemStack stack){
+        System.out.println("In check baubles");
 
-        net.minecraft.item.ItemStack vanillaStack = baubles.getStackInSlot(curSlot);
-        if(enderioSoulbound.isPresent()){
-            NBTTagList enchantments = vanillaStack.getEnchantmentTagList();
-            for (int i = 0; i < enchantments.tagCount(); i++) {
-                NBTTagCompound enchant = enchantments.getCompoundTagAt(i);
-                enchant.removeTag("ench");
-            }
-
-            baubles.extractItem(curSlot, vanillaStack.getCount(), true);
-            baubles.insertItem(curSlot, vanillaStack, true);
-
-            // ANd then here apply that shit back to the item
-
-            // And then see what the fuck baubles is whining about about not being allowed to just set Items in their slots.
+        // Get enchantment data from the item.
+        System.out.println("Getting echantData");
+        EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class).get();
+        // Cleanse the enchantmentData
+        System.out.println("About to cleanse that shit");
+        EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
+        // Check if anything has changes, aka if any Souls have been harvested.
+        System.out.println("Checking BAUBLE Enchant Difference");
+        if(enchantmentData.asList().containsAll(newEnchantData.asList())){
+            System.out.println("Bauble Enchants Differ!");
+            // setting stack to the new cleansed EnchantmentData
+            stack.offer(newEnchantData);
+            // Setting slot with the item - SoulBound enchants.
+            System.out.println("Extracting");
+            baubles.extractItem(curSlot, stack.getQuantity(), false);
+            System.out.println("Inserting");
+            baubles.insertItem(curSlot, (net.minecraft.item.ItemStack)(Object) stack, false);
+            System.out.println("Done, returning SoulBound");
         }
-
-
-
-
-        return hasSoulbound;
     }
 
     //Vanilla inventory slots, using Sponge.
-    private static boolean checkInvSlots(boolean hasSoulbound, Inventory slot){
+    private static void checkInvSlots(Inventory slot){
         // Better than checking everytime.
         ItemStack stack = slot.peek().get();
         // Get enchantment data from the item.
@@ -101,14 +110,12 @@ public class Utility {
         EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
         // Check if anything has changes, aka if any Souls have been harvested.
         if(enchantmentData.asList().containsAll(newEnchantData.asList())){
-            if(!hasSoulbound) hasSoulbound = true;
+            System.out.println("Enchants ARE DIFFERENT");
             // setting stack to the new cleansed EnchantmentData
             stack.offer(newEnchantData);
             // Setting slot with the item - SoulBound enchants.
             slot.set(stack);
         }
-
-        return hasSoulbound;
     }
 
     // As in the enchantments.
@@ -120,6 +127,7 @@ public class Utility {
             Enchantment soulbound = Enchantment.builder().type(enderioSoulbound.get()).level(1).build();
             if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(soulbound)) {
                 enchantmentData.remove(soulbound); // Remove it from the list.
+                setSoulboundTrue();
             }
         }
 
@@ -128,12 +136,18 @@ public class Utility {
             for (int i = 1; i < 4; i++) {
                 Enchantment cofhSB = Enchantment.builder().type(cofhSoulbound.get()).level(i).build();
                 if (stack.get(Keys.ITEM_ENCHANTMENTS).get().contains(cofhSB)) {
+                    System.out.println("removing CofH " + i);
                     enchantmentData.remove(cofhSB); // Remove it from the list.
+                    setSoulboundTrue();
                 }
             }
         }
 
         return enchantmentData;
+    }
+
+    private static void setSoulboundTrue(){
+        if(!hasSoulbound) hasSoulbound = true;
     }
 
     public static void setGamerule() {
@@ -176,7 +190,7 @@ public class Utility {
     }
 
     public static class Pagination {
-        public static final String TITLE = "&cIf you read this, you're dead.";
+        public static final String TITLE = "&cDirtCraft &6Keep Inventory";
         public static final String PADDING = "&4&m-";
     }
 

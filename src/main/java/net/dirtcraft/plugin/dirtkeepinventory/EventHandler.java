@@ -65,7 +65,7 @@ public class EventHandler {
         ArrayList<String> contents = new ArrayList<>();
         contents.add("");
 
-        if (false) {
+        if (isPixelmon) {
             contents.add("&b" + player.getName() + "&7's inventory has been &arestored");
             event.setKeepInventory(true);
         } else {
