@@ -44,81 +44,35 @@ public class Utility {
         hasSoulbound = false;
 
         List<ItemStack> items = InventoryHelper.INSTANCE.getEnchanted(player);
-
-        // For each normal inventory slot.
-        for (Inventory slot : player.getInventory().slots()) {
-            if (!slot.peek().isPresent()) continue;
-            // Check if the item is even enchanted.
-            if (!slot.peek().get().get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
-            checkInvSlots(slot);
+        for (ItemStack stack : items) {
+            if (stripSoulbound(stack)) hasSoulbound = true;
         }
 
-        // Check if the pack has Baubles.
-        System.out.println("Before getBaubles");
-        if (BaublesApi.getBaublesHandler((EntityPlayer) player) != null) {
-            System.out.println("In Get baubles");
-            //For each bauble slot.
-            IBaublesItemHandler baubles = BaublesApi.getBaublesHandler((EntityPlayer) player);
-            System.out.println("Got the Baubles");
-            System.out.println(baubles.getSlots());
-            for (int i = 0; i < baubles.getSlots(); i++){
-                // Casting the ForgeStack onto the Sponge Stack (Thanks Shiny <3)
-                ItemStack stack = (ItemStack)(Object) baubles.getStackInSlot(i);
-                System.out.println("Created Stack thanks Shiny");
-                System.out.println(i);
-                if (baubles.getStackInSlot(i).isEmpty()) continue;
-                System.out.println("Is not empty");
-                if (!stack.get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
-                System.out.println("Is Enchanted");
-                // Gotta call another one because Baubles can't use setSlot
-                checkBaubleSlots(baubles, i, stack);
-            }
-        }
         return hasSoulbound;
     }
 
-    //Bauble slots, using Forge                                     WHY can't it shit out sponge stacks -_-
-    //This is making me cry.
-    private static void checkBaubleSlots(IBaublesItemHandler baubles, int curSlot, ItemStack stack){
-        System.out.println("In check baubles");
-
-        // Get enchantment data from the item.
-        System.out.println("Getting echantData");
-        EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class).get();
-        // Cleanse the enchantmentData
-        System.out.println("About to cleanse that shit");
-        EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
-        // Check if anything has changes, aka if any Souls have been harvested.
-        System.out.println("Checking BAUBLE Enchant Difference");
-        if(enchantmentData.asList().containsAll(newEnchantData.asList())){
-            System.out.println("Bauble Enchants Differ!");
+    //By abstracting things, we can combine previously seperated code.
+    public static boolean stripSoulbound(ItemStack stack){
+        System.out.println("Getting enchantData");
+        EnchantmentData oldData = stack.getOrCreate(EnchantmentData.class).orElseThrow(()->new IllegalArgumentException("getOrCreate did not return"));
+        EnchantmentData newData = removeSoul(oldData, stack);
+        //Not that we need this, since we can just set but this works O(1) and is just as good as the old O(n2) method, which has to iterate over everything.
+        //Since we are only removing, not modifying we can ascertain that if the size is the same, it is unchanged. If it changes, the data has changed.
+        if(oldData.asList().size() != newData.asList().size()){
+            System.out.println("Enchants Differ!");
             // setting stack to the new cleansed EnchantmentData
-            stack.offer(newEnchantData);
+            stack.offer(newData);
             // Setting slot with the item - SoulBound enchants.
+            /* Why are we extracting and putting back the same thing?
             System.out.println("Extracting");
             baubles.extractItem(curSlot, stack.getQuantity(), false);
             System.out.println("Inserting");
             baubles.insertItem(curSlot, (net.minecraft.item.ItemStack)(Object) stack, false);
             System.out.println("Done, returning SoulBound");
+             */
+            return true;
         }
-    }
-
-    //Vanilla inventory slots, using Sponge.
-    private static void checkInvSlots(Inventory slot){
-        // Better than checking everytime.
-        ItemStack stack = slot.peek().get();
-        // Get enchantment data from the item.
-        EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class).get();
-        // Cleanse the enchantmentData
-        EnchantmentData newEnchantData = removeSoul(enchantmentData, stack);
-        // Check if anything has changes, aka if any Souls have been harvested.
-        if(enchantmentData.asList().containsAll(newEnchantData.asList())){
-            System.out.println("Enchants ARE DIFFERENT");
-            // setting stack to the new cleansed EnchantmentData
-            stack.offer(newEnchantData);
-            // Setting slot with the item - SoulBound enchants.
-            slot.set(stack);
-        }
+        return false;
     }
 
     // As in the enchantments.
