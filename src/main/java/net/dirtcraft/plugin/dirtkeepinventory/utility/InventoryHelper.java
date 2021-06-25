@@ -19,6 +19,7 @@ import java.util.List;
     will be in it's own file, such as InventoryHelper.class, InventoryHelper$1.class, InventoryHelper$2.class.
  */
 public interface InventoryHelper {
+    InventoryHelper INSTANCE = INTERNAL.getInstance();
     default List<ItemStack> getEnchanted(Player player){
         // For each normal inventory slot.
         List<ItemStack> enchanted = new ArrayList<>();
@@ -75,7 +76,7 @@ public interface InventoryHelper {
                 //return the functioning helper, if the class exists.
                 //We do this by using class.forname, which will err if the class is not found, but since it's not a class literal this class will compile
                 Class.forName("baubles.api.BaublesApi");
-                return null;
+                return new Baubles();
             } catch (Exception e) {
                 //return a dummy impl. to prevent NPE's. This works because the interface is full of default methods.
                 return new InventoryHelper() {};

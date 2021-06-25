@@ -3,6 +3,7 @@ package net.dirtcraft.plugin.dirtkeepinventory.utility;
 import me.lucko.luckperms.LuckPerms;
 import me.lucko.luckperms.api.LuckPermsApi;
 import net.dirtcraft.plugin.dirtkeepinventory.utility.EconomyHelper;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
@@ -41,6 +42,8 @@ public class Utility {
 
     public static boolean hasSoulboundItem(Player player) {
         hasSoulbound = false;
+
+        List<ItemStack> items = InventoryHelper.INSTANCE.getEnchanted(player);
 
         // For each normal inventory slot.
         for (Inventory slot : player.getInventory().slots()) {
