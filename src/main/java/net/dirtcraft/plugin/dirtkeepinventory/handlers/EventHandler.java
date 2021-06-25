@@ -34,7 +34,7 @@ public class EventHandler {
         new CommandManager();
     }
 
-    @Listener (order = Order.FIRST, beforeModifications = true)
+    @Listener (order = Order.PRE, beforeModifications = true)
     public void onPlayerDeath(DestructEntityEvent.Death event) {
         Living cause = event.getTargetEntity();
 
@@ -72,11 +72,9 @@ public class EventHandler {
             event.setKeepInventory(true);
         } else {
 
-        if (Utility.hasSoulboundItem(player)) {
-            contents.add("&cAn item with Soulbound has been detected & unenchanted.");
-        }
+            Utility.filterSoulboundItems(player);
 
-        Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
+            Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
 
             if (keepInv.getKey()) {
                 int value = keepInv.getValue();

@@ -2,6 +2,7 @@ package net.dirtcraft.plugin.dirtkeepinventory.utility;
 
 import baubles.api.BaublesApi;
 import baubles.api.cap.IBaublesItemHandler;
+//import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayer;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
@@ -10,6 +11,7 @@ import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /*
     We abstract this away here for a few reasons.
@@ -18,30 +20,37 @@ import java.util.List;
     the way this works, despite being in one file is each class is actually split into more during compile, so each class{}
     will be in it's own file, such as InventoryHelper.class, InventoryHelper$1.class, InventoryHelper$2.class.
  */
-public interface InventoryHelper {
-    InventoryHelper INSTANCE = INTERNAL.getInstance();
-    default List<ItemStack> getEnchanted(Player player){
-        // For each normal inventory slot.
-        List<ItemStack> enchanted = new ArrayList<>();
+public abstract class InventoryHelper {
+    public static InventoryHelper INSTANCE = getInstance();
+
+    private static InventoryHelper getInstance(){
+        try {
+            //return the functioning helper, if the class exists.
+            //We do this by using class.forname, which will err if the class is not found, but since it's not a class literal this class will compile
+            Class.forName("baubles.api.BaublesApi");
+            return new Baubles();
+        } catch (Exception e) {
+            //return a dummy impl. to prevent NPE's. This works because the interface is full of default methods.
+            return new InventoryHelper() {};
+        }
+    }
+
+    public void mapEnchanted(Player player, Function<ItemStack, ItemStack>  mapper){
         for (Inventory slot : player.getInventory().slots()) {
             //We utilize the optional to apply a filter, then which will make it not present if it does not quality.
             //Then we add to the list if it's present.
-            slot.peek().filter(stack->stack.get(Keys.ITEM_ENCHANTMENTS).isPresent())
-                    .ifPresent(enchanted::add);
+            if (!slot.peek().map(stack->stack.get(Keys.ITEM_ENCHANTMENTS)).isPresent()) continue;
+            ItemStack stack = slot.poll().orElse(null);
+            if (stack == null) continue;
+            mapper.apply(stack);
+            slot.set(stack);
         }
-        return enchanted;
     }
 
-    class Baubles implements InventoryHelper {
+    public static class Baubles extends InventoryHelper {
         @Override
-        public List<ItemStack> getEnchanted(Player player){
-            List<ItemStack> enchanted = new ArrayList<>();
-            for (Inventory slot : player.getInventory().slots()) {
-                //We utilize the optional to apply a filter, then which will make it not present if it does not quality.
-                //Then we add to the list if it's present.
-                slot.peek().filter(stack->stack.get(Keys.ITEM_ENCHANTMENTS).isPresent())
-                        .ifPresent(enchanted::add);
-            }
+        public void mapEnchanted(Player player, Function<ItemStack, ItemStack>  mapper){
+            super.mapEnchanted(player, mapper);
 
             //Get and store the method, then check null later. Iterate and add to list
             IBaublesItemHandler handler = BaublesApi.getBaublesHandler((EntityPlayer) player);
@@ -59,27 +68,9 @@ public interface InventoryHelper {
                     System.out.println("Is not empty");
                     if (!stack.get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
                     System.out.println("Is Enchanted");
-                    // Gotta call another one because Baubles can't use setSlot
-                    enchanted.add(stack);
+                    mapper.apply(stack);
+                    handler.setStackInSlot(i, (net.minecraft.item.ItemStack) (Object) stack);
                 }
-            }
-
-            return enchanted;
-        }
-    }
-
-    // Interfaces cannot have private stuff, so we hide stuff in here to keep things clean so we can't accidently call any of this.
-    class INTERNAL {
-        private static List<ItemStack> empty = new ArrayList<>();
-        private static InventoryHelper getInstance(){
-            try {
-                //return the functioning helper, if the class exists.
-                //We do this by using class.forname, which will err if the class is not found, but since it's not a class literal this class will compile
-                Class.forName("baubles.api.BaublesApi");
-                return new Baubles();
-            } catch (Exception e) {
-                //return a dummy impl. to prevent NPE's. This works because the interface is full of default methods.
-                return new InventoryHelper() {};
             }
         }
     }

@@ -47,6 +47,8 @@ minecraft {
     mappings = "snapshot_20171003"
 }
 
+sourceJar.enabled = false;
+
 /* OLD
 plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
