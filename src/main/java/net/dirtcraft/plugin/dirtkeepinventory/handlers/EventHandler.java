@@ -1,7 +1,9 @@
-package net.dirtcraft.plugin.dirtkeepinventory;
+package net.dirtcraft.plugin.dirtkeepinventory.handlers;
 
 import net.dirtcraft.discord.spongediscordlib.SpongeDiscordLib;
 import net.dirtcraft.plugin.dirtkeepinventory.Commands.CommandManager;
+import net.dirtcraft.plugin.dirtkeepinventory.DirtKeepInventory;
+import net.dirtcraft.plugin.dirtkeepinventory.utility.Utility;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;

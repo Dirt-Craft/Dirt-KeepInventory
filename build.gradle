@@ -47,30 +47,27 @@ minecraft {
     mappings = "snapshot_20171003"
 }
 
+/* OLD
+plugins {
+    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'java'
+}
+
+group = pluginGroup
+version = pluginVersion
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    compile 'me.lucko.luckperms:luckperms-api:4.4'
+    compile fileTree(dir: 'libs', include: '*.jar')
+}
 
 
 
-
-// OLD
-//plugins {
-//    id 'org.spongepowered.plugin' version '0.8.1'
-//    id 'java'
-//}
-//
-//group = pluginGroup
-//version = pluginVersion
-//
-//repositories {
-//    mavenCentral()
-//    jcenter()
-//}
-//
-//dependencies {
-//    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
-//    compile 'me.lucko.luckperms:luckperms-api:4.4'
-//    compile fileTree(dir: 'libs', include: '*.jar')
-//}
-//
-//
-//
-//sponge.plugin.id = pluginId
+sponge.plugin.id = pluginId
+ */

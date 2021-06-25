@@ -1,7 +1,8 @@
-package net.dirtcraft.plugin.dirtkeepinventory;
+package net.dirtcraft.plugin.dirtkeepinventory.utility;
 
 import me.lucko.luckperms.LuckPerms;
 import me.lucko.luckperms.api.LuckPermsApi;
+import net.dirtcraft.plugin.dirtkeepinventory.utility.EconomyHelper;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,7 +11,6 @@ import net.minecraftforge.items.IItemHandler;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
-import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.enchantment.Enchantment;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
@@ -186,7 +186,7 @@ public class Utility {
             fee = Groups.GROUP_FEE.get("beginner");
         }
         // Added this here, and removed it from all the if's.
-        return new AbstractMap.SimpleEntry<>(Economy.withdrawBalance(player, fee), fee);
+        return new AbstractMap.SimpleEntry<>(EconomyHelper.withdrawBalance(player, fee), fee);
     }
 
     public static class Pagination {
