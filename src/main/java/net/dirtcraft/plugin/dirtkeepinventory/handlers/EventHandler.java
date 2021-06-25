@@ -1,7 +1,9 @@
-package net.dirtcraft.plugin.dirtkeepinventory;
+package net.dirtcraft.plugin.dirtkeepinventory.handlers;
 
 import net.dirtcraft.discord.spongediscordlib.SpongeDiscordLib;
 import net.dirtcraft.plugin.dirtkeepinventory.Commands.CommandManager;
+import net.dirtcraft.plugin.dirtkeepinventory.DirtKeepInventory;
+import net.dirtcraft.plugin.dirtkeepinventory.utility.Utility;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -32,7 +34,7 @@ public class EventHandler {
         new CommandManager();
     }
 
-    @Listener (order = Order.FIRST, beforeModifications = true)
+    @Listener (order = Order.PRE, beforeModifications = true)
     public void onPlayerDeath(DestructEntityEvent.Death event) {
         Living cause = event.getTargetEntity();
 
@@ -70,11 +72,9 @@ public class EventHandler {
             event.setKeepInventory(true);
         } else {
 
-        if (Utility.hasSoulboundItem(player)) {
-            contents.add("&cAn item with Soulbound has been detected & unenchanted.");
-        }
+            Utility.filterSoulboundItems(player);
 
-        Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
+            Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
 
             if (keepInv.getKey()) {
                 int value = keepInv.getValue();

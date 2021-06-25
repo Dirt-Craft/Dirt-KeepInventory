@@ -1,5 +1,6 @@
-package net.dirtcraft.plugin.dirtkeepinventory;
+package net.dirtcraft.plugin.dirtkeepinventory.utility;
 
+import net.dirtcraft.plugin.dirtkeepinventory.DirtKeepInventory;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -14,7 +15,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-public class Economy {
+public class EconomyHelper {
 
     public static Optional<EconomyService> getEconomyService() {
         return Sponge.getServiceManager().provide(EconomyService.class);

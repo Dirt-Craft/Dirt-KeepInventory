@@ -1,6 +1,7 @@
 package net.dirtcraft.plugin.dirtkeepinventory;
 
 import com.google.inject.Inject;
+import net.dirtcraft.plugin.dirtkeepinventory.handlers.EventHandler;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;

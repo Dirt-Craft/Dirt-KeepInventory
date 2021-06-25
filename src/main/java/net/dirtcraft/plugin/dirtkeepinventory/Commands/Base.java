@@ -2,7 +2,7 @@ package net.dirtcraft.plugin.dirtkeepinventory.Commands;
 
 import me.lucko.luckperms.api.Node;
 import me.lucko.luckperms.api.User;
-import net.dirtcraft.plugin.dirtkeepinventory.Utility;
+import net.dirtcraft.plugin.dirtkeepinventory.utility.Utility;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
