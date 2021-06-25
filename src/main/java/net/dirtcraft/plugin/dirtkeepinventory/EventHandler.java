@@ -71,7 +71,7 @@ public class EventHandler {
         } else {
 
         if (Utility.hasSoulboundItem(player)) {
-            pagination.footer(Utility.format("&cAn item with Soulbound has been detected and removed from your inventory!"));
+            contents.add("&cAn item with Soulbound has been detected & unenchanted.");
         }
 
         Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
