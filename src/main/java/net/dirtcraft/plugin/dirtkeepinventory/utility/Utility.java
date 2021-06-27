@@ -60,7 +60,7 @@ public class Utility {
         int base = PermissionHelper.INSTANCE.getMetaInt(playa, Permissions.META_COST, 0);
         int discount = getKeepInvDiscount(playa);
         if (discount == 0 || base == 0) return base;
-        else return (int) (base * ((100 - discount) / 100f));
+        else return (int) (base * (Math.max(0, 100 - discount) / 100f));
     }
 
     public static boolean setKeepInvFee(String group, int val){
