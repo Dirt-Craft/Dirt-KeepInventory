@@ -1,12 +1,8 @@
 package net.dirtcraft.plugin.dirtkeepinventory.utility;
 
-
-import me.lucko.luckperms.LuckPerms;
-import me.lucko.luckperms.api.LuckPermsApi;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.enchantment.Enchantment;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
@@ -52,31 +48,29 @@ public class Utility {
                 .padding(format(Pagination.PADDING));
     }
 
-    public static LuckPermsApi getLuckPerms() {
-        return LuckPerms.getApi();
+    public static boolean isExempt(Player player){
+        return player.hasPermission(Permissions.EXEMPT);
     }
 
-    public static Map.Entry<Boolean, Integer> canKeepInventory(Player player) {
-        int fee = 0;
-        if (player.hasPermission(Permissions.EXEMPT)) {
-            return new AbstractMap.SimpleEntry<>(true, fee);
-        }
+    public static int getKeepInvDiscount(Player playa){
+        return PermissionHelper.INSTANCE.getMetaInt(playa, Permissions.META_DISCOUNT, 0);
+    }
 
-        if (player.hasPermission(Groups.VETERAN)) {
-            fee = Groups.GROUP_FEE.get("veteran");
-        } else if (player.hasPermission(Groups.MASTER)) {
-            fee = Groups.GROUP_FEE.get("master");
-        } else if (player.hasPermission(Groups.EXPERIENCED)) {
-            fee = Groups.GROUP_FEE.get("experienced");
-        } else if (player.hasPermission(Groups.CITIZEN)) {
-            fee = Groups.GROUP_FEE.get("citizen");
-        } else if (player.hasPermission(Groups.AMATEUR)) {
-            fee = Groups.GROUP_FEE.get("amateur");
-        } else if (player.hasPermission(Groups.BEGINNER)) {
-            fee = Groups.GROUP_FEE.get("beginner");
-        }
-        // Added this here, and removed it from all the if's.
-        return new AbstractMap.SimpleEntry<>(EconomyHelper.withdrawBalance(player, fee), fee);
+    public static int getKeepInvFee(Player playa){
+        int base = PermissionHelper.INSTANCE.getMetaInt(playa, Permissions.META_COST, 0);
+        int discount = getKeepInvDiscount(playa);
+        if (discount == 0 || base == 0) return base;
+        else return (int) (base * ((100 - discount) / 100f));
+    }
+
+    public static boolean setKeepInvFee(String group, int val){
+        return PermissionHelper.INSTANCE.setMetaInt(group, Permissions.META_COST, val);
+    }
+
+    public static Map.Entry<Boolean, Integer> tryChargePlayer(Player player) {
+        int fee = getKeepInvFee(player);
+        if (isExempt(player)) return new AbstractMap.SimpleEntry<>(true, 0);
+        else return new AbstractMap.SimpleEntry<>(EconomyHelper.withdrawBalance(player, fee), fee);
     }
 
     public static class Pagination {
@@ -85,10 +79,14 @@ public class Utility {
     }
 
     public static class Permissions {
+        public static final String SET_COST = "dirtkeepinventory.cost.set";
+        public static final String META_COST = "dirtkeepinventory.cost.value";
+        public static final String META_DISCOUNT = "dirtkeepinventory.cost.discount";
         public static final String ENABLED = "dirtkeepinventory.enabled";
         public static final String EXEMPT = "dirtkeepinventory.exempt";
     }
 
+    /*
     public static class Groups {
         public static final String BEGINNER = "group.beginner";
         public static final String AMATEUR = "group.amateur";
@@ -106,5 +104,7 @@ public class Utility {
             put("veteran", 200);
         }};
     }
+
+     */
 
 }

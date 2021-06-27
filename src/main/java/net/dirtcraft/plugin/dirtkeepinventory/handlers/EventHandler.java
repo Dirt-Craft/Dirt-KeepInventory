@@ -71,7 +71,7 @@ public class EventHandler {
             event.setKeepInventory(true);
         } else {
             Utility.filterSoulboundItems(player);
-            Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
+            Map.Entry<Boolean, Integer> keepInv = Utility.tryChargePlayer(player);
             if (keepInv.getKey()) {
                 int value = keepInv.getValue();
                 if (value > 0) {
