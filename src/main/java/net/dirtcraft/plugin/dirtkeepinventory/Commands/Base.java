@@ -1,7 +1,6 @@
 package net.dirtcraft.plugin.dirtkeepinventory.Commands;
 
-import me.lucko.luckperms.api.Node;
-import me.lucko.luckperms.api.User;
+import net.dirtcraft.plugin.dirtkeepinventory.utility.PermissionHelper;
 import net.dirtcraft.plugin.dirtkeepinventory.utility.Utility;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -16,71 +15,34 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Base implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext args) throws CommandException {
-        if (!(source instanceof Player))
-            throw new CommandException(Utility.format("&cOnly a player can set their Keep Inventory status!"));
+        if (!(source instanceof Player)) throw new CommandException(Utility.format("&cOnly a player can set their Keep Inventory status!"));
         Player player = (Player) source;
-        User user = Utility.getLuckPerms().getUser(player.getUniqueId());
-        if (user == null) throw new CommandException(Utility.format("&cThere was an error retrieving your user data!"));
 
-        if (args.<String>getOne("status").isPresent()) {
-            if (args.<String>getOne("status").get().equalsIgnoreCase("on")) {
-                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
-                        .setValue(true)
-                        .build();
-                user.setPermission(node);
-                Utility.getLuckPerms().getUserManager().saveUser(user);
-
-                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
-                return CommandResult.success();
-            }
-            if (args.<String>getOne("status").get().equalsIgnoreCase("off")) {
-                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
-                        .setValue(false)
-                        .build();
-                user.setPermission(node);
-                Utility.getLuckPerms().getUserManager().saveUser(user);
-
-                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
-                return CommandResult.success();
-            }
+        if (args.<Boolean>getOne("enable").isPresent()) {
+            boolean newValue = args.<Boolean>getOne("enable").get();
+            PermissionHelper.INSTANCE.setPerm(player, Utility.Permissions.ENABLED, newValue);
+            Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
+            return CommandResult.success();
         }
 
-        ArrayList<String> statisticsHover = new ArrayList<String>() {{
-            add("&5&nStatistics&r\n&r");
-            add("&7Player&8: &6" + player.getName());
-        }};
-        if (player.getStatisticData().get(Statistics.DEATHS).isPresent()) {
-            statisticsHover.add("&7Deaths&8: &6" + player.getStatisticData().get(Statistics.DEATHS).get().toString());
-        } else {
-            statisticsHover.add("&7Deaths&8: &6" + "N/A");
-        }
+        List<String> statisticsHover = Arrays.asList(
+                "&5&nStatistics&r\n&r",
+                "&7Player&8: &6" + player.getName(),
+                "&7Deaths&8: &6" + player.getStatisticData().get(Statistics.DEATHS).map(String::valueOf).orElse("N/A")
+        );
 
-        StringBuilder deathPenalty = new StringBuilder();
-        deathPenalty.append("&7Keep Inventory Fee: &6");
-        if (player.hasPermission(Utility.Permissions.EXEMPT)) {
-            deathPenalty.append("Exempt");
-        } else {
-            if (player.hasPermission(Utility.Groups.VETERAN)) {
-                deathPenalty.append("$200 Coins");
-            } else if (player.hasPermission(Utility.Groups.MASTER)) {
-                deathPenalty.append("$150 Coins");
-            } else if (player.hasPermission(Utility.Groups.EXPERIENCED)) {
-                deathPenalty.append("$125 Coins");
-            } else if (player.hasPermission(Utility.Groups.CITIZEN)) {
-                deathPenalty.append("$100 Coins");
-            } else if (player.hasPermission(Utility.Groups.AMATEUR)) {
-                deathPenalty.append("$75 Coins");
-            } else if (player.hasPermission(Utility.Groups.BEGINNER)) {
-                deathPenalty.append("$50 Coins");
-            } else {
-                deathPenalty.append("None");
-            }
-        }
+        final String cost;
+        final int fee = Utility.getKeepInvFee(player);
+        if (Utility.isExempt(player)) cost = "Exempt";
+        else if (fee == 0) cost = "None";
+        else cost = String.valueOf(fee);
 
         Text.Builder text = Text.builder();
         ArrayList<String> contents = new ArrayList<>();
@@ -90,35 +52,15 @@ public class Base implements CommandExecutor {
 
         if (player.hasPermission(Utility.Permissions.ENABLED)) {
             contents.add("&7Keep Inventory is currently &aenabled&7, click me to toggle!");
-
-            text.onClick(TextActions.executeCallback(disable -> {
-                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
-                        .setValue(false)
-                        .build();
-                user.setPermission(node);
-                Utility.getLuckPerms().getUserManager().saveUser(user);
-
-                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
-            }));
+            text.onClick(TextActions.executeCallback(disable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv 0")));
         } else {
             contents.add("&7Keep Inventory is currently &cdisabled&7, click me to toggle!");
-
-            text.onClick(TextActions.executeCallback(enable -> {
-                Node node = Utility.getLuckPerms().buildNode(Utility.Permissions.ENABLED)
-                        .setValue(true)
-                        .build();
-                user.setPermission(node);
-                Utility.getLuckPerms().getUserManager().saveUser(user);
-
-                Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
-            }));
+            text.onClick(TextActions.executeCallback(enable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv 1")));
         }
         contents.add("");
 
         text.append(Utility.format(String.join("\n", contents)));
-        text.onHover(TextActions.showText(Utility.format(deathPenalty.toString())));
-
-
+        text.onHover(TextActions.showText(Utility.format("&7Keep Inventory Fee: &6" + cost)));
 
         pagination.contents(text.build());
 

@@ -2,15 +2,12 @@ package net.dirtcraft.plugin.dirtkeepinventory.utility;
 
 import baubles.api.BaublesApi;
 import baubles.api.cap.IBaublesItemHandler;
-//import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayer;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 /*
@@ -51,23 +48,16 @@ public abstract class InventoryHelper {
         @Override
         public void mapEnchanted(Player player, Function<ItemStack, ItemStack>  mapper){
             super.mapEnchanted(player, mapper);
-
             //Get and store the method, then check null later. Iterate and add to list
             IBaublesItemHandler handler = BaublesApi.getBaublesHandler((EntityPlayer) player);
             if (handler != null) {
-                System.out.println("In Get baubles");
                 //For each bauble slot.
-                System.out.println("Got the Baubles");
                 System.out.println(handler.getSlots());
                 for (int i = 0; i < handler.getSlots(); i++){
                     // Casting the ForgeStack onto the Sponge Stack (Thanks Shiny <3)
                     ItemStack stack = (ItemStack)(Object) handler.getStackInSlot(i);
-                    System.out.println("Created Stack thanks Shiny");
-                    System.out.println(i);
                     if (stack.isEmpty()) continue;
-                    System.out.println("Is not empty");
                     if (!stack.get(Keys.ITEM_ENCHANTMENTS).isPresent()) continue;
-                    System.out.println("Is Enchanted");
                     mapper.apply(stack);
                     handler.setStackInSlot(i, (net.minecraft.item.ItemStack) (Object) stack);
                 }

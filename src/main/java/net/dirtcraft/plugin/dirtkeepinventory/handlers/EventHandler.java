@@ -57,11 +57,10 @@ public class EventHandler {
 
         if (Utility.deathList.contains(player.getUniqueId()) && !isPixelmon) {
             event.setKeepInventory(true);
+            Utility.filterSoulboundItems(player);
             player.sendMessage(Utility.format("&7You are currently under a &b60 &7second grace period"));
             return;
         }
-
-        //
 
         PaginationList.Builder pagination = Utility.getPagination();
         ArrayList<String> contents = new ArrayList<>();
@@ -71,11 +70,8 @@ public class EventHandler {
             contents.add("&b" + player.getName() + "&7's inventory has been &arestored");
             event.setKeepInventory(true);
         } else {
-
             Utility.filterSoulboundItems(player);
-
-            Map.Entry<Boolean, Integer> keepInv = Utility.canKeepInventory(player);
-
+            Map.Entry<Boolean, Integer> keepInv = Utility.tryChargePlayer(player);
             if (keepInv.getKey()) {
                 int value = keepInv.getValue();
                 if (value > 0) {
