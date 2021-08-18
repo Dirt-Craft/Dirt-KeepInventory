@@ -32,7 +32,8 @@ public class Utility {
     private static ItemStack removeSoul(ItemStack stack){
         EnchantmentData enchantmentData = stack.getOrCreate(EnchantmentData.class)
                 .orElseThrow(()->new IllegalArgumentException("getOrCreate did not return"));
-        stack.offer(enchantmentData.removeAll(e->blacklisted.contains(e.getType().getId())));
+        if(!enchantmentData.enchantments().isEmpty())
+            stack.offer(enchantmentData.removeAll(e->blacklisted.contains(e.getType().getId())));
         return stack;
     }
 
