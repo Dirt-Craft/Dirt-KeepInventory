@@ -8,28 +8,24 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class CommandManager {
 
     public CommandManager() {
-        Sponge.getCommandManager().register(DirtKeepInventory.getInstance(), this.status(),"kp", "keepinv", "keepinventory");
+        Sponge.getCommandManager().register(DirtKeepInventory.getInstance(), this.base(),"kp", "keepinv", "keepinventory");
     }
 
     private CommandSpec base() {
         return CommandSpec.builder()
                 .child(set(), "set", "cost")
-                .child(status(), "status")
+                .child(status(), "status", "enable")
                 .build();
     }
 
     private CommandSpec status() {
         return CommandSpec.builder()
                 .arguments(GenericArguments.optional(
-                        GenericArguments.bool(Text.of("enable"))))
+                        GenericArguments.bool(Text.of("value"))))
                 .description(Text.of("Base command for " + DirtKeepInventory.getContainer().getName()))
-                .child(set(), "set", "cost")
                 .executor(new Base())
                 .build();
     }
