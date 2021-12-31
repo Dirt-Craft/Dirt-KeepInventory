@@ -50,11 +50,6 @@ public class EventHandler {
             return;
         }
 
-        if (SpongeDiscordLib.getServerName().equalsIgnoreCase("rl craft")) {
-            event.setKeepInventory(true);
-            return;
-        }
-
         if (Utility.deathList.contains(player.getUniqueId()) && !isPixelmon) {
             event.setKeepInventory(true);
             Utility.filterSoulboundItems(player);
