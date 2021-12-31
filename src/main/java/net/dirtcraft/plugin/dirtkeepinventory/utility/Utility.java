@@ -61,7 +61,7 @@ public class Utility {
         int base = PermissionHelper.INSTANCE.getMetaInt(playa, Permissions.META_COST, 0);
         int discount = getKeepInvDiscount(playa);
         if (discount == 0 || base == 0) return base;
-        else return (int) (base * ((100 - discount) / 100f));
+        else return (int) (base * (Math.max(0, 100 - discount) / 100f));
     }
 
     public static boolean setKeepInvFee(String group, int val){
@@ -86,26 +86,4 @@ public class Utility {
         public static final String ENABLED = "dirtkeepinventory.enabled";
         public static final String EXEMPT = "dirtkeepinventory.exempt";
     }
-
-    /*
-    public static class Groups {
-        public static final String BEGINNER = "group.beginner";
-        public static final String AMATEUR = "group.amateur";
-        public static final String CITIZEN = "group.citizen";
-        public static final String EXPERIENCED = "group.experienced";
-        public static final String MASTER = "group.master";
-        public static final String VETERAN = "group.veteran";
-
-        public static final HashMap<String, Integer> GROUP_FEE = new HashMap<String, Integer>() {{
-            put("beginner", 50);
-            put("amateur", 75);
-            put("citizen", 100);
-            put("experienced", 125);
-            put("master", 150);
-            put("veteran", 200);
-        }};
-    }
-
-     */
-
 }

@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class PermissionHelper {
+public class PermissionHelper {
     public static PermissionHelper INSTANCE = getInstance();
+
+    private PermissionHelper(){}
+
     private static PermissionHelper getInstance(){
         try {
             //return the functioning helper, if the class exists.
@@ -18,7 +21,7 @@ public abstract class PermissionHelper {
             return new Api4();
         } catch (Exception e) {
             //return a dummy impl. to prevent NPE's. This works because the interface is full of default methods.
-            return new PermissionHelper(){};
+            return new PermissionHelper();
         }
 
     }
