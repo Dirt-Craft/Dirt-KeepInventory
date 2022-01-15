@@ -52,10 +52,10 @@ public class Base implements CommandExecutor {
 
         if (player.hasPermission(Utility.Permissions.ENABLED)) {
             contents.add("&7Keep Inventory is currently &aenabled&7, click me to toggle!");
-            text.onClick(TextActions.executeCallback(disable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv 0")));
+            text.onClick(TextActions.executeCallback(disable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv enable 0")));
         } else {
             contents.add("&7Keep Inventory is currently &cdisabled&7, click me to toggle!");
-            text.onClick(TextActions.executeCallback(enable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv 1")));
+            text.onClick(TextActions.executeCallback(enable -> Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv enable 1")));
         }
         contents.add("");
 
