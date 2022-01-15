@@ -25,8 +25,8 @@ public class Base implements CommandExecutor {
         if (!(source instanceof Player)) throw new CommandException(Utility.format("&cOnly a player can set their Keep Inventory status!"));
         Player player = (Player) source;
 
-        if (args.<Boolean>getOne("enable").isPresent()) {
-            boolean newValue = args.<Boolean>getOne("enable").get();
+        if (args.<Boolean>getOne("value").isPresent()) {
+            boolean newValue = args.<Boolean>getOne("value").get();
             PermissionHelper.INSTANCE.setPerm(player, Utility.Permissions.ENABLED, newValue);
             Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
             return CommandResult.success();
