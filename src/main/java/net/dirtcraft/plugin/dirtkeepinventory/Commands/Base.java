@@ -28,7 +28,7 @@ public class Base implements CommandExecutor {
         if (args.<Boolean>getOne("value").isPresent()) {
             boolean newValue = args.<Boolean>getOne("value").get();
             PermissionHelper.INSTANCE.setPerm(player, Utility.Permissions.ENABLED, newValue);
-            Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv");
+            Sponge.getCommandManager().process(player, "dirt-keepinventory:keepinv status");
             return CommandResult.success();
         }
 
